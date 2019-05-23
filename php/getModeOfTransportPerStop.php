@@ -47,7 +47,7 @@ $gtfsFilePath = $argv[1];
 $archive = GtfsArchive::createFromPath($gtfsFilePath);
 
 // Read the entire stops file
-$allGtfsStops = $archive->getStops();
+$allGtfsStops = $archive->getStopsFile()->getStops();
 
 // We will store our results in a multi-dimensional array:
 // For every stop-id we hold a nested array which contains all transport modes.
@@ -59,14 +59,16 @@ echo "Looping over " . count($allGtfsStops) . " stops" . PHP_EOL;
 foreach ($allGtfsStops as $gtfsStop) {
     // Get all StopTimes, defined in stop_times.txt, where the stop_id equals this stop.
     $stopId = $gtfsStop->getStopId();
-    $stopTimesForStop = $archive->getStopTimesForStop($stopId);
+    $stopTimesForStop = $archive->getStopTimesFile()->getStopTimesForStop($stopId);
     foreach ($stopTimesForStop as $stopTime) {
         // get the trip_id for this stop_time.
         $tripIdForStopTime = $stopTime->getTripId();
         // get the route_id for the trip
-        $routeIdForStopTime = $archive->getTrip($tripIdForStopTime)->getRouteId();
+        echo "*";
+        $routeIdForStopTime = $archive->getTripsFile()->getTrip($tripIdForStopTime)->getRouteId();
         // get the route
-        $routeForStopTime = $archive->getRoute($routeIdForStopTime);
+        $routeForStopTime = $archive->getRoutesFile()->getRoute($routeIdForStopTime);
+        echo "*";
         // get the transport mode from the route
         $routeType = $routeForStopTime->getRouteType();
 
