@@ -12,7 +12,7 @@
  * -------------------
  * Run `composer install` first to install any dependencies. For more information, see https://getcomposer.org/ .
  *
- * Run this file directly from the command line by invoking `php getModeOfTransportPerStop.php <your-gtfs-file>`
+ * Run this file directly from the command line by invoking `php getModeOfTransportForAllStops.php <your-gtfs-file>`
  * <your-gtfs-file> should be the path to the GTFS file on which you want to run the script.
  *
  * License
@@ -64,11 +64,9 @@ foreach ($allGtfsStops as $gtfsStop) {
         // get the trip_id for this stop_time.
         $tripIdForStopTime = $stopTime->getTripId();
         // get the route_id for the trip
-        echo "*";
         $routeIdForStopTime = $archive->getTripsFile()->getTrip($tripIdForStopTime)->getRouteId();
         // get the route
         $routeForStopTime = $archive->getRoutesFile()->getRoute($routeIdForStopTime);
-        echo "*";
         // get the transport mode from the route
         $routeType = $routeForStopTime->getRouteType();
 

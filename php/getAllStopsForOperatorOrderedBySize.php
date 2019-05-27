@@ -5,21 +5,20 @@
  * ================================================
  *
  * This set of scripts is meant to give you an example on how you can use GTFS, and what you can do with it.
- * This specific script will give a list of all stops for a given agency_id and route_type, and print them out
- * to the command line.
+ * This specific script will give a list of all stops for a given agency_id, and sort them by the average number of
+ * stops per day. The average number of stops per day is a good indicator for the size of the stop.
  *
  * Usage
  * -------------------
  * Run `composer install` first to install any dependencies. For more information, see https://getcomposer.org/ .
  *
- * Run this file directly from the command line by invoking `php getModeOfTransportPerStop.php <your-gtfs-file>
- * <whitelisted-operator> <whitelisted-transport-modes-csv>`
+ * Run this file directly from the command line by invoking
+ * `php getAllstopsForOperatorOrderedBySize.php <your-gtfs-file> <whitelisted-operator>`
+ *
  * <your-gtfs-file> should be the path to the GTFS file on which you want to run the script.
  * <whitelisted-operator> is the GTFS agency id for the operator which you're interested in.
- * <whitelisted-transport-modes-csv> is one or more route-types which you are interested in, separated by ,
  *
- * Example: php getStopsForTransportTypeByOperator.php "sweden-gtfs.zip" 276 3,200,201,202,203,204,205,206,207,208,209,
- * 700,701,702,703,704,705,706,707,708,709,710,711,712,713,714,715,716,717
+ * Example: php getAllstopsForOperatorOrderedBySize.php "sweden-gtfs.zip" 276
  *
  * License
  * -------------------
@@ -44,16 +43,8 @@ require_once __DIR__ . "/vendor/autoload.php";
 // Read the first argument, which should be the path to a GTFS file
 // Argv is a special variable: https://www.php.net/manual/en/reserved.variables.argv.php
 $gtfsFilePath = $argv[1];
+// The operator to print out
 $whitelistedOperator = $argv[2];
-// Read the whitelisted transport modes into a variable
-$whitelistedTransportModes = $argv[3];
-// Convert to an array if it is a list of values separated by a comma
-if (strpos($whitelistedTransportModes, ',') !== false) {
-    $whitelistedTransportModes = explode(',', $whitelistedTransportModes);
-} else {
-    // convert a single value to an array so this whitelist is always an array
-    $whitelistedTransportModes = [$whitelistedTransportModes];
-}
 
 // Use the GtfsArchive class from the Trafiklab GTFS SDK to read the GTFS file.
 // See https://github.com/trafiklab/gtfs-php-sdk.
@@ -67,21 +58,45 @@ echo "Reading stop_times.txt..." . PHP_EOL;
 // Load data into cache with a nice loading message.
 $archive->getStopTimesFile();
 
-// We will store our results in a multi-dimensional array:
-// For every stop-id we hold a nested array which contains all transport modes.
-// Create an empty array to hold our results.
-$transportModesPerStop = [];
-
 $stopCount = count($allGtfsStops);
-echo "Looping over " . $stopCount . " stops" . PHP_EOL;
+echo $stopCount . " stops will be processed." . PHP_EOL;
 
-// Additional caching to ensure good performance when handling with millions of stop times
+// This array will hold our results
+$averageStopsPerDayPerStop = [];
+
+// This array will keep track of all the days on which at least one trip is serviced
+$handledDays = [];
+
+// This array will keep track of all the days on which a certain trip is served
+$serviceIdForTrip = [];
+
+// This array will keep track of which trips are serving which stops
+$tripsPerStop = [];
+echo "Processing trips and calendar dates...";
+$allTrips = $archive->getTripsFile()->getTrips();
+
+$serviceDates = [];
+foreach ($archive->getCalendarDatesFile()->getCalendarDates() as $calendarDate) {
+    $dateStr = $calendarDate->getDate()->format("Ymd");
+    if (!key_exists($calendarDate->getServiceId(), $serviceDates)) {
+        $serviceDates[$calendarDate->getServiceId()] = [];
+    }
+    $serviceDates[$calendarDate->getServiceId()][] = $dateStr;
+    // register this day as in service
+    $handledDays[$dateStr] = 1;
+}
+
+foreach ($allTrips as $trip) {
+    $serviceIdForTrip[$trip->getTripId()] = $trip->getServiceId();
+}
+
+echo PHP_EOL;
 $routeForTripId = [];
-
-$i = 0;
+echo "Processed trips, now starting with stops...";
 foreach ($allGtfsStops as $gtfsStop) {
     // Get all StopTimes, defined in stop_times.txt, where the stop_id equals this stop.
     $stopId = $gtfsStop->getStopId();
+
     $stopTimesForStop = $archive->getStopTimesFile()->getStopTimesForStop($stopId);
     foreach ($stopTimesForStop as $stopTime) {
         // get the trip_id for this stop_time.
@@ -94,40 +109,43 @@ foreach ($allGtfsStops as $gtfsStop) {
             // get the route
             $routeForTripId[$tripIdForStopTime] = $archive->getRoutesFile()->getRoute($routeIdForStopTime);
         }
+
         // Get the route from cache
         $routeForStopTime = $routeForTripId[$tripIdForStopTime];
-
         // Filter on operator. If not whitelisted, ignore
         if ($routeForStopTime->getAgencyId() != $whitelistedOperator) {
             continue;
         }
 
-        // get the transport mode from the route
-        $routeType = $routeForStopTime->getRouteType();
-
-        // Ensure we store each type of traffic only once
-        if (!key_exists($stopId, $transportModesPerStop) || !in_array($routeType, $transportModesPerStop[$stopId])) {
-            if (!key_exists($stopId, $transportModesPerStop)) {
-                // If this stop doesn't occur in our results array yet, initialize it.
-                $transportModesPerStop[$stopId] = [];
-            }
-            $transportModesPerStop[$stopId][] = $routeType;
+        if (!key_exists($stopId, $tripsPerStop)) {
+            $tripsPerStop[$stopId] = [];
         }
-    }
-    echo ".";
-    if ($i++ % ($stopCount / 20) == 0) {
-        echo round((100 * $i) / $stopCount, 0);
-    }
-}
-echo PHP_EOL;
 
-// Cleanup
+        if (!key_exists($tripIdForStopTime, $tripsPerStop[$stopId])) {
+            $tripsPerStop[$stopId][$tripIdForStopTime] = 0;
+        }
+
+        // Count the number of times a trip stops at a certain stop
+        $tripsPerStop[$stopId][$tripIdForStopTime]++;
+    }
+
+}
+echo PHP_EOL . PHP_EOL;
+// Cleanup GTFS data which is no longer needed
 $archive->deleteUncompressedFiles();
 
-foreach ($transportModesPerStop as $stopId => $transportModesArray) {
-    // Filter on whitelist. If there is at least one transport mode on the whitelist that's passing at this stop,
-    // print the stop to the console
-    if (count(array_intersect($whitelistedTransportModes, $transportModesArray)) > 0) {
-        echo $stopId . PHP_EOL;
+$totalDaysSeen = count($handledDays);
+foreach ($tripsPerStop as $stopId => $trips) {
+    $servingsForThisStop = 0;
+    foreach ($trips as $tripId => $timesServiced) {
+        $servingsForThisStop += $timesServiced * count($serviceDates[$serviceIdForTrip[$tripId]]);
     }
+    $averageStopsPerDayPerStop[$stopId] = $servingsForThisStop / $totalDaysSeen;
 }
+
+asort($averageStopsPerDayPerStop);
+
+foreach ($averageStopsPerDayPerStop as $stopId => $averageStops) {
+    echo $stopId . ": " . round($averageStops, 2) . PHP_EOL;
+}
+

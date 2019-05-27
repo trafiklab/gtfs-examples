@@ -12,12 +12,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/trafiklab/gtfs-php-sdk.git",
-                "reference": "57148fd6d58b66552cf4e58d4c239de17c5dde1a"
+                "reference": "0d9b342e5eb561b942d61b9d06c72a56e0b4ad08"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/trafiklab/gtfs-php-sdk/zipball/57148fd6d58b66552cf4e58d4c239de17c5dde1a",
-                "reference": "57148fd6d58b66552cf4e58d4c239de17c5dde1a",
+                "url": "https://api.github.com/repos/trafiklab/gtfs-php-sdk/zipball/0d9b342e5eb561b942d61b9d06c72a56e0b4ad08",
+                "reference": "0d9b342e5eb561b942d61b9d06c72a56e0b4ad08",
                 "shasum": ""
             },
             "require": {
@@ -57,7 +57,7 @@
                 "sdk",
                 "trafiklab"
             ],
-            "time": "2019-05-23T11:09:40+00:00"
+            "time": "2019-05-27T12:54:12+00:00"
         }
     ],
     "packages-dev": [
