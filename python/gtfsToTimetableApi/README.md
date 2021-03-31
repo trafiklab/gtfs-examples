@@ -15,7 +15,7 @@ while building a production-ready solution. It can be tweaked to be production-r
 
 ## Installation
 
-- Make sure you have python 3 and pip on your device. Make sure you are actually working in python 3 if you have
+- Make sure you have **python 3.8 (or higher)** and pip on your device. Make sure you are actually working in python 3 if you have
   multiple versions installed.
 - **Optional:** If you want to, and know how to, you can run this project in a virtual environment.
 - Clone or download the python files, the install the requirements using `pip install -r requirements.txt`
