@@ -43,8 +43,8 @@ class GtfsArchiveFetcher:
             os.makedirs(directory_path)
 
         # Check if a download is needed
-        if not GtfsArchiveFetcher.archive_exists(directory_path) or GtfsArchiveFetcher.is_archive_outdated(
-                directory_path):
+        if not GtfsArchiveFetcher.archive_exists(directory_path) \
+                or GtfsArchiveFetcher.is_archive_outdated(directory_path):
             logging.info("Updating GTFS archive")
             r = requests.get(url, allow_redirects=True)
             zipdata = BytesIO()
@@ -66,8 +66,8 @@ class GtfsArchiveFetcher:
         :param directory: The directory containing the extracted GTFS feed.
         :return: True if outdated, False otherwise.
         """
-        creation_time_epoch = os.path.getctime(os.path.join(directory, "feed_info.txt"))
-        creation_time = datetime.fromtimestamp(creation_time_epoch)
+        modification_time_epoch = os.path.getmtime(os.path.join(directory, "feed_info.txt"))
+        creation_time = datetime.fromtimestamp(modification_time_epoch)
         is_outdated = datetime.now() - creation_time > timedelta(days=1)
         if is_outdated:
             logging.info("GTFS archive is older than 1 day")
@@ -78,7 +78,7 @@ class GtfsArchiveFetcher:
 
 class TimeTableQueryEngine:
 
-    def __init__(self, gtfs_root, realtime_fetcher, reduce_memory_usage=False):
+    def __init__(self, gtfs_root: str, realtime_fetcher: RealtimeDataFetcher, reduce_memory_usage: bool = False):
         logging.info("Initializing TimeTableQueryEngine")
         if reduce_memory_usage:
             logging.warning("Reduced memory usage is enabled."
@@ -264,6 +264,8 @@ class TimeTableQueryEngine:
             # Get realtime information
             delay = self._realtime_fetcher.get_delay_for_trip_stop(trip['trip_id'], stop_time['stop_sequence'])
             position = self._realtime_fetcher.get_position_for_trip(trip['trip_id'])
+            occupancy = self._realtime_fetcher.get_occupancy_for_trip(trip['trip_id'])
+
             entries.append({
                 "direction": stop_time['stop_headsign'],
                 "scheduled_departure_time": stop_time['departure_time'],
@@ -273,7 +275,8 @@ class TimeTableQueryEngine:
                 "route_long": route['route_long_name'],
                 "route_short": route['route_short_name'],
                 "delay": delay,
-                "position": position
+                "position": position,
+                "occupancy": occupancy
             })
 
         # Wrap departures and stops in one object

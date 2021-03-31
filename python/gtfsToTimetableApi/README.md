@@ -1,8 +1,10 @@
 # GTFS Timetable API demo
+**This example shows how to use GTFS, GTFS-RT TripUpdates (delays), GTFS-RT VehiclePositions (GPS positions), GTFS-RT VehiclePositions (Occupancy data).**
+
 
 This project is a little tech demo, showing how GTFS and GTFS-RT data can be used to create a timetable API. The
-timetable API shows a list of realtime departures from a given stop, along with the current position of the vehicle if
-it's available. No pre-processing or data conversion is needed.
+timetable API shows a list of realtime departures from a given stop, along with the current position and occupancy grade
+of the vehicle if it's available. No pre-processing or data conversion is needed.
 
 The demo consists of a module that builds timetables from scheduled GTFS data (`GtfsTimeTable.py`) and a module that
 fetches and parses realtime data (`RealtimeDataFetcher.py`). A helper class
@@ -42,7 +44,8 @@ The Flask webapp contains two endpoints:
 **Important! ** If you want to reach the development server from another machine in your network, you need to edit the
 last line in `TimeTableApi.py` from `app.run()` to `app.run(host="0.0.0.0")`
 
-A response from the departures endpoint can look like this:
+A response from the `/departures/<stop-id>` endpoint contains all the platforms that were searched, and all the
+departures from those platforms. It looks like this:
 
 ```json
 {
@@ -97,7 +100,8 @@ A response from the departures endpoint can look like this:
         "longitude": 13.174702644348145,
         "bearing": 46,
         "speed": 37.08000068664551
-      }
+      },
+      "occupancy": "MANY_SEATS_AVAILABLE"
     }
   ]
 ```
