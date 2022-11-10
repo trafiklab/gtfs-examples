@@ -20,6 +20,7 @@ ROUTE_TYPE_NAMES = {
     717: "FÖRBESTÄLLNINGSTRAFIK",
     900: "TRAM",
     1000: "FERRY",
+    1501: "NÄRTRAFIK",
 }
 
 
