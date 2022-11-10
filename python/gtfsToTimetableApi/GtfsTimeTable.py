@@ -17,7 +17,6 @@ ROUTE_TYPE_NAMES = {
     100: "TRAIN",
     401: "METRO",
     700: "BUS",
-    717: "FÖRBESTÄLLNINGSTRAFIK",
     900: "TRAM",
     1000: "FERRY",
     1501: "NÄRTRAFIK",
