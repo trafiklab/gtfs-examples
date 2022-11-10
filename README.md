@@ -1,6 +1,6 @@
 # GTFS-examples
 
-Here you can find scripts written in Java and PHP, as an example on how you can use GTFS, and what's possible with it. 
+Here you can find scripts written in Python and PHP, as an example on how you can use GTFS, and what's possible with it. 
 
 ## Contributing
 
