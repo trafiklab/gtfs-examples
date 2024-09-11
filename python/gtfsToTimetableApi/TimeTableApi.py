@@ -6,6 +6,7 @@ import argparse
 import json
 import logging
 import sys
+from datetime import datetime, timedelta
 
 import flask
 
@@ -28,7 +29,10 @@ app = flask.Flask(__name__)
 
 @app.route('/departures/<stop_id>', methods=['GET'])
 def departures(stop_id):
-    resp = flask.Response(json.dumps(query_engine.create_departures_timetable(stop_id)))
+    gtfs_path = GtfsArchiveFetcher.fetch_and_extract(args.gtfs_url, "gtfs/")
+    window_start =  datetime.now() - timedelta(minutes=10)
+    window_end = datetime.now() + timedelta(hours=2)
+    resp = flask.Response(json.dumps(query_engine.create_departures_timetable(stop_id, window_start, window_end)))
     resp.headers['Content-encoding'] = 'UTF-8'
     resp.headers['Content-type'] = 'Application/json'
     return resp
@@ -36,6 +40,7 @@ def departures(stop_id):
 
 @app.route('/stops/', methods=['GET'])
 def stops():
+    gtfs_path = GtfsArchiveFetcher.fetch_and_extract(args.gtfs_url, "gtfs/")
     resp = flask.Response(json.dumps(query_engine.list_queryable_stops()))
     resp.headers['Content-encoding'] = 'UTF-8'
     resp.headers['Content-type'] = 'Application/json'

@@ -1,4 +1,4 @@
-Flask==1.1.2
-gtfs-realtime-bindings==0.0.7
-urllib3==1.26.5
+Flask==3.0.3
+gtfs-realtime-bindings==1.0.0
+urllib3==2.2.2
 requests==2.31.0

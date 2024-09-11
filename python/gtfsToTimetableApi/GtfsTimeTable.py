@@ -72,7 +72,7 @@ class GtfsArchiveFetcher:
         if is_outdated:
             logging.info("GTFS archive is older than 1 day")
         else:
-            logging.info("GTFS archive is less than 1 day old")
+            logging.debug("GTFS archive is less than 1 day old") # Since we check this on every call loglevel is set to DEBUG when the archive is up to date
         return is_outdated
 
 
@@ -350,7 +350,7 @@ if __name__ == '__main__':
     required.add_argument("--vehicle-positions",
                           help="the url to the vehiclepositions.pb file. Include an API key if the realtime feed requires this.",
                           dest="vehicle_positions", required=True)
-    required.add_argument("--stop-id", help="the id of the stop to create a timetable for", dest="stop-id",
+    required.add_argument("--stop-id", help="the id of the stop to create a timetable for", dest="stop_id",
                           required=True)
     args = parser.parse_args()
 
@@ -362,5 +362,5 @@ if __name__ == '__main__':
     # will be offset by the reduced startup time.
     query_engine = TimeTableQueryEngine(gtfs_path, realtime_data_fetcher, reduce_memory_usage=True)
     # Run a sample query and print the result
-    result = query_engine.create_departures_timetable('9021012080000000')
+    result = query_engine.create_departures_timetable(args.stop_id)
     print(result)

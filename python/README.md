@@ -25,6 +25,6 @@ see a new feature added, you can also create a feature request by creating an is
 
 If you're stuck with a question, feel free to ask help through the Issue tracker.
 
-- Need help with API keys? Please read [www.trafiklab.se/api-nycklar](https://www.trafiklab.se/api-nycklar) first.
+- Need help with API keys? Please read [Getting Started](https://www.trafiklab.se/docs/getting-started/using-trafiklab) first.
 - Do you want to check the current systems status? Service disruptions are published on
   the [Trafiklab homepage](https://www.trafiklab.se/)
